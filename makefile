@@ -1,12 +1,7 @@
-all: bankingSystem
-
-bankingSystem: bankingSystem.o
+bankingSystem: bankingSystem.c
 	gcc -fsanitize=address -g $^ -o $@ -lm -lSDL -lpthread -lSDL_gfx
 
-.c.o: 
-	gcc -fsanitize=address -g -Wall -pedantic -std=c99 -c -D_REENTRANT $<
-
-bankingSystem.o: bankingSystem.c
+.PHONY: clean
 
 clean:
-	-rm bankingSystem.o bankingSystem
+	-rm bankingSystem
