@@ -77,15 +77,13 @@ void newAccount(){
   }while(!getNameOrLastname(accStruct.lastName, sizeof(accStruct.lastName)));
   printf("First name: %s\nLast name: %s\nAccount number: %d\n", accStruct.firstName, accStruct.lastName, accStruct.accountNumber);
 
-  //accStruct.pesel = "12345678901";
-  //accStruct.balance = 100;
 
   externFile = fopen("accounts.dat", "a");
   if(externFile == NULL){
     printf("Cannot create/open file.");
     exit(1);
   }
-  fwrite (&newAccount, sizeof(struct account), 1, externFile);
+  fwrite (&accStruct, sizeof(struct account), 1, externFile);
   fclose(externFile);
 
   menu();
