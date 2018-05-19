@@ -21,6 +21,7 @@ int getNameOrLastname(char *, size_t);
 void safeInput(char *, size_t);
 void clearBuffer(void);
 int accountNumberCreator(void);
+void listAllAccounts(void);
 
 
 int main (int argc, char **argv) {
@@ -31,11 +32,12 @@ int main (int argc, char **argv) {
 
 void menu(){
   int choice;
-
+  //printf("\e[2J\e[H"); // clear terminal
   printf("\n\n===BANKING SYSTEM==============================================\n");
-  printf("===MENU========================================================\n");
+  printf("===MENU========================================================\n\n");
   printf("Choose one of options:\n");
-  printf("1.Create an account\n2.Exit\n");
+  printf("1.Create an account\n2.List all accounts\n3.Exit");
+  printf("\n===============================================================\n");
   fflush(stdin);
   if(!scanf("%d", &choice)){
     while ((getchar()) != '\n');
@@ -48,9 +50,9 @@ void menu(){
   if(choice == 1){
     newAccount();
   }else if(choice == 2){
-    exit(1);
+    listAllAccounts();
   }else if(choice == 3){
-
+    exit(1);
   }else{
     printf("\nINVALID INPUT\n");
     menu();
@@ -61,7 +63,7 @@ void newAccount(){
 
   FILE *externFile;
   account accStruct;
-
+  printf("\e[2J\e[H"); // clear terminal
   printf("\n\n===============================================================\n");
   printf("=NEW ACCOUNT CREATOR===========================================\n\n");
 
@@ -73,12 +75,16 @@ void newAccount(){
   do{
     printf("Input your last name. Maximum 30 chars, letters only:\n");
   }while(!getNameOrLastname(accStruct.lastName, sizeof(accStruct.lastName)));
+  printf("First name: %s\nLast name: %s\nAccount number: %d\n", accStruct.firstName, accStruct.lastName, accStruct.accountNumber);
 
-  printf("First name: %s\n", accStruct.firstName);
-  printf("Last name: %s\n", accStruct.lastName);
-  printf("Account number: %d\n", accStruct.accountNumber);
+  //accStruct.pesel = "12345678901";
+  //accStruct.balance = 100;
 
   externFile = fopen("accounts.dat", "a");
+  if(externFile == NULL){
+    printf("Cannot create/open file.");
+    exit(1);
+  }
   fwrite (&newAccount, sizeof(struct account), 1, externFile);
   fclose(externFile);
 
@@ -130,6 +136,24 @@ int accountNumberCreator(){
   }
 }
 
+
+void listAllAccounts(){
+  struct account tempAccount;
+
+  FILE *fptr;
+  fptr = fopen("accounts.dat", "r");
+  if(fptr == NULL){
+    printf("\nThere is no account here!");
+    menu();
+  }
+  while(fread(&tempAccount, sizeof(struct account), 1, fptr)){
+    printf("Account number: %d\n", tempAccount.accountNumber);
+    printf("First name:     %s\n", tempAccount.firstName);
+    printf("Last name:      %s\n\n", tempAccount.lastName);
+  }
+  fclose(fptr);
+  menu();
+}
 
 void clearBuffer(void)
 {
