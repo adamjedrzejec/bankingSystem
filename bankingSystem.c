@@ -22,7 +22,7 @@ typedef struct account{
 void menu(void);
 void newAccount(void);
 int getNameOrLastname(char *, size_t);
-int safeInput(char *, size_t);
+void safeInput(char *, size_t);
 void clearBuffer(void);
 int accountNumberCreator(void);
 void listAllAccounts(void);
@@ -85,7 +85,7 @@ void newAccount(){
   }while(!getNameOrLastname(accStruct.lastName, sizeof(accStruct.lastName)));
   do{
     printf("Input your PESEL. 11 digits, digits only:\n");
-  }while(!getAddress(accStruct.pesel, sizeof(accStruct.pesel)));
+  }while(!getPesel(accStruct.pesel, sizeof(accStruct.pesel)));
   do{
     printf("Input your address. Maximum 50 chars:\n");
   }while(!getAddress(accStruct.address, sizeof(accStruct.address)));
@@ -125,11 +125,7 @@ int getNameOrLastname(char * reference, size_t size){
   char user[MAX_FIRST_LAST_NAME_LENGTH + 1];
   int onlyLetters = 1;
 
-  if(!safeInput(user, size)){
-    printf("Wrong input, try again\n");
-    return 0;
-  }
-
+  safeInput(user, size);
 
   for(int i = 0; i < strlen(user); i++)
   {
@@ -137,7 +133,7 @@ int getNameOrLastname(char * reference, size_t size){
       onlyLetters = 0;
   }
 
-  if(onlyLetters){
+  if(onlyLetters && strlen(user) != 0){
     if(!isupper(user[0]))
       user[0] -= 32;
     for(int i = 1; i < strlen(user); i++){
@@ -145,16 +141,10 @@ int getNameOrLastname(char * reference, size_t size){
         user[i] += 32;
 
     }
-    //printf("\nCHAR %c\n", user[0]);
-    //if(user[0] == '\n') { // to check if userinput is just blank entry (user just pressed enter key)
-    //  printf("Wrong input, try again\n");
-    //  return 0;
-    //}
     strcpy(reference, user);
     return 1;
   }
-  else
-  {
+  else{
     printf("Wrong input, try again\n");
     return 0;
   }
@@ -165,10 +155,7 @@ int getAddress(char * reference, size_t size){
   char user[MAX_ADDRESS_LENGTH + 1];
   int onlyAlphaNumerical = 1;
 
-  if(!safeInput(user, size)){
-    printf("Wrong input, try again\n");
-    return 0;
-  }
+  safeInput(user, size);
 
   for(int i = 0; i < strlen(user); i++)
   {
@@ -176,14 +163,13 @@ int getAddress(char * reference, size_t size){
       onlyAlphaNumerical = 0;
   }
 
-  if(onlyAlphaNumerical){
+  if(onlyAlphaNumerical && strlen(user) != 0){
     if(!isupper(user[0]))
       user[0] -= 32;
     strcpy(reference, user);
     return 1;
   }
-  else
-  {
+  else{
     printf("Wrong input, try again\n");
     return 0;
   }
@@ -194,10 +180,7 @@ int getPesel(char * reference, size_t size){
   char user[PESEL_LENGTH + 1];
   int onlyDigits = 1;
 
-  if(!safeInput(user, size)){
-    printf("Wrong input, try again\n");
-    return 0;
-  }
+  safeInput(user, size);
 
   for(int i = 0; i < strlen(user); i++)
   {
@@ -205,7 +188,7 @@ int getPesel(char * reference, size_t size){
       onlyDigits = 0;
   }
 
-  if(onlyDigits){
+  if(onlyDigits && strlen(user) == PESEL_LENGTH){
     strcpy(reference, user);
     return 1;
   }
@@ -266,17 +249,14 @@ void clearBuffer(void)
 }
 
 
-int safeInput(char * reference, size_t size)
+void safeInput(char * reference, size_t size)
 {
   int c;
   if(fgets(reference, size, stdin));
-  if(reference[0] == '\n')
-    return 0;
   if(strlen(reference) == size - 1)
   {
     while((c = getchar()) != '\n' && c != EOF);
   }
   reference[strcspn(reference, "\n")] = '\0';
   fflush(stdin);
-  return 1;
 }
