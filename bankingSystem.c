@@ -436,10 +436,87 @@ void clearDatabase(void){
 }
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 void transferOperation(int transferFrom, int transferTo){
-  printf("\nOK\n");
+
+  account tempAccount;
+  FILE *externFile;
+  bool done;
+  float howMuchMoney;
+
+
+  printf("\nEnter how much money to transfer: ");
+
+  if(!scanf("%f", &howMuchMoney)){
+    while ((getchar()) != '\n');
+    printf("\nINVALID INPUT\n");
+    printf("\n\n--> transfer was not done!");
+    menu();
+  }
+  clearBuffer();
+
+
+  externFile = fopen("accounts.dat", "r+");
+  if(externFile == NULL)
+    printf("\nProblem with opening the file.\n");
+  else{
+    done = false;
+    while(fread(&tempAccount, sizeof(struct account), 1, externFile)){
+      if(tempAccount.accountNumber == transferFrom){
+        tempAccount.balance -= howMuchMoney;
+        fseek(externFile, -sizeof(struct account), 1);
+        fwrite(&tempAccount, sizeof(struct account), 1, externFile);
+      }
+    }
+
+    fseek(externFile, (-howManyAccountsExist())*sizeof(struct account), 1);
+
+
+    done = false;
+    while(fread(&tempAccount, sizeof(struct account), 1, externFile)){
+      if(tempAccount.accountNumber == transferTo){
+        tempAccount.balance += howMuchMoney;
+        fseek(externFile, -sizeof(struct account), 1);
+        fwrite(&tempAccount, sizeof(struct account), 1, externFile);
+      }
+    }
+    fclose (externFile);
+    done = true;
+  }
+
+  printf("\e[2J\e[H"); // clear terminal
+
+  shortListAllAccounts();
+
+  if(done)
+    printf("\n\n--> transfer done properly.");
+  else
+    printf("\n\n--> transfer was not done!");
+
   menu();
 }
+
+
+
+
+
+
+
+
+
+
+
 
 bool isAccount(int accountNumber){
   account tempAccount;
