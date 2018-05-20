@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdbool.h>
 
 #define MAX_FIRST_LAST_NAME_LENGTH 30
 #define MAX_ADDRESS_LENGTH 50
@@ -24,13 +25,17 @@ void newAccount(void);
 int getNameOrLastname(char *, size_t);
 void safeInput(char *, size_t);
 void clearBuffer(void);
-int accountNumberCreator(void);
+int howManyAccountsExist(void);
 void listAllAccounts(void);
 int getAddress(char *, size_t);
 int getPesel(char *, size_t);
-void withdraw(void);
+void transferOperation(char *);
+void shortListAllAccounts(void);
+
+
 
 int main (int argc, char **argv) {
+  printf("\e[2J\e[H"); // clear terminal
   menu();
   return 0;
 }
@@ -42,7 +47,7 @@ void menu(){
   printf("\n\n===BANKING SYSTEM==============================================\n");
   printf("===MENU========================================================\n\n");
   printf("Choose one of options:\n");
-  printf("1.Create an account\n2.List all accounts\n3.Withdraw\n4.Exit");
+  printf("1.Create an account\n2.List all accounts\n3.Withdraw\n4.Deposit\n5.Exit");
   printf("\n===============================================================\n");
   fflush(stdin);
   if(!scanf("%d", &choice)){
@@ -50,8 +55,8 @@ void menu(){
     printf("\nINVALID INPUT\n");
     menu();
   }
-
   clearBuffer();
+
   printf("\e[2J\e[H"); // clear terminal
 
   if(choice == 1){
@@ -59,8 +64,10 @@ void menu(){
   }else if(choice == 2){
     listAllAccounts();
   }else if(choice == 3){
-    withdraw();
+    transferOperation("withdraw");
   }else if(choice == 4){
+    transferOperation("deposit");
+  }else if(choice == 5){
     exit(1);
   }else{
     printf("\nINVALID INPUT\n");
@@ -77,7 +84,7 @@ void newAccount(){
   printf("\n\n===============================================================\n");
   printf("=NEW ACCOUNT CREATOR===========================================\n\n");
 
-  accStruct.accountNumber = accountNumberCreator() + 1;
+  accStruct.accountNumber = howManyAccountsExist() + 1;
 
   do{
     printf("Input your first name. Maximum 30 chars, letters only:\n");
@@ -105,6 +112,10 @@ void newAccount(){
     accept = getchar();
     clearBuffer();
   }while(!(accept == 'y' || accept == 'n'));
+
+
+  printf("\e[2J\e[H"); // clear terminal
+
 
   if(accept == 'y'){
     externFile = fopen("accounts.dat", "a");
@@ -203,7 +214,7 @@ int getPesel(char * reference, size_t size){
 
 
 
-int accountNumberCreator(void){
+int howManyAccountsExist(void){
   account accounts;
   int cnt_accounts = 0;
   FILE *externFile;
@@ -221,7 +232,7 @@ int accountNumberCreator(void){
 
 
 void listAllAccounts(){
-  struct account tempAccount;
+  account tempAccount;
 
   FILE *externFile;
   externFile = fopen("accounts.dat", "r");
@@ -230,7 +241,7 @@ void listAllAccounts(){
     menu();
   }
 
-  printf("===LIST OF ALL ACCOUNTS===========================================\n\n");
+  printf("===LIST OF ALL ACCOUNTS========================================\n\n");
 
   while(fread(&tempAccount, sizeof(struct account), 1, externFile)){
     printf("Account number:  %d\n", tempAccount.accountNumber);
@@ -241,30 +252,97 @@ void listAllAccounts(){
     printf("Balance:         %.2f\n\n\n", tempAccount.balance);
   }
   fclose(externFile);
-  printf("==================================================================\n\n");
+  printf("===============================================================");
   menu();
 }
 
 
-void withdraw(void){
+void shortListAllAccounts(){
+  account tempAccount;
 
-  listAllAccounts();
+  FILE *externFile;
+  externFile = fopen("accounts.dat", "r");
+  if(externFile == NULL){
+    printf("\e[2J\e[H"); // clear terminal
+    printf("\nThere are no accounts!");
+    menu();
+  }
+
+  printf("===LIST OF ALL ACCOUNTS========================================\n\n");
+
+  while(fread(&tempAccount, sizeof(struct account), 1, externFile)){
+    printf("Account number:  %d\n", tempAccount.accountNumber);
+    printf("Account owner:   %s %s\n", tempAccount.firstName, tempAccount.lastName);
+    printf("Balance:         %.2f\n\n", tempAccount.balance);
+  }
+  fclose(externFile);
+  printf("===============================================================");
+}
+
+
+void transferOperation(char *operation){
 
   account tempAccount;
-  int withdrawTo = 2;
+  int operationOn;
   FILE *externFile;
+  bool done = false;
+  float howMuchMoney;
+  int whichOperation;
 
-  externFile = fopen("accounts.dat", "a+");
-  if(externFile == NULL)
-    printf("\nProblem with creating/opening file.\n");
+  if(strcmp(operation, "withdraw") == 0)
+    whichOperation = -1;
+  else if(strcmp(operation, "deposit") == 0)
+    whichOperation = 1;
   else{
-    while(fread(&tempAccount, sizeof(struct account), 1, externFile)){
-      if(tempAccount.accountNumber == withdrawTo){
-        tempAccount.balance += 100;
-        fwrite(&tempAccount.balance, sizeof(tempAccount.balance), 1, externFile);
+    printf("\e[2J\e[H"); // clear terminal
+    printf("Invalid operation!\n");
+    menu();
+  }
+
+  shortListAllAccounts();
+  printf("\n\nChoose account for a %s: ", operation);
+
+  if(!scanf("%d", &operationOn)){
+    while ((getchar()) != '\n');
+    printf("\nINVALID INPUT\n");
+    menu();
+  }
+  clearBuffer();
+
+
+  printf("\nEnter how much money to %s: ", operation);
+
+  if(!scanf("%f", &howMuchMoney)){
+    while ((getchar()) != '\n');
+    printf("\nINVALID INPUT\n");
+    menu();
+  }
+  clearBuffer();
+
+
+  externFile = fopen("accounts.dat", "r+");
+  if(externFile == NULL)
+    printf("\nProblem with opening the file.\n");
+  else{
+    while(!done && fread(&tempAccount, sizeof(struct account), 1, externFile)){
+      if(tempAccount.accountNumber == operationOn){
+        tempAccount.balance += whichOperation * howMuchMoney;
+        fseek(externFile, -sizeof(struct account), 1);
+        fwrite(&tempAccount, sizeof(struct account), 1, externFile);
+        done = true;
       }
     }
     fclose (externFile);
+    printf("\e[2J\e[H"); // clear terminal
+
+    shortListAllAccounts();
+
+    if(done)
+      printf("\n\n--> %s done properly.", operation);
+    else
+      printf("\n\n--> %s was not done!", operation);
+
+    menu();
   }
 }
 
