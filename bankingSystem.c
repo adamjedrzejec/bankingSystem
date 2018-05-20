@@ -29,9 +29,11 @@ int howManyAccountsExist(void);
 void listAllAccounts(void);
 int getAddress(char *, size_t);
 int getPesel(char *, size_t);
-void transferOperation(char *);
+void moneyOperation(char *); // possible variables: "withdraw" and "deposit"
 void shortListAllAccounts(void);
-
+void clearDatabase(void);
+void transferOperation(int, int);
+bool isAccount(int);
 
 
 int main (int argc, char **argv) {
@@ -47,7 +49,7 @@ void menu(){
   printf("\n\n===BANKING SYSTEM==============================================\n");
   printf("===MENU========================================================\n\n");
   printf("Choose one of options:\n");
-  printf("1.Create an account\n2.List all accounts\n3.Withdraw\n4.Deposit\n5.Exit");
+  printf("1.Create an account\n2.List all accounts\n3.Withdraw\n4.Deposit\n5.Transfer\n6.Clear database\n7.Exit");
   printf("\n===============================================================\n");
   fflush(stdin);
   if(!scanf("%d", &choice)){
@@ -62,12 +64,71 @@ void menu(){
   if(choice == 1){
     newAccount();
   }else if(choice == 2){
-    listAllAccounts();
+    if(howManyAccountsExist() > 0)
+      listAllAccounts();
+      else{
+        printf("\e[2J\e[H"); // clear terminal
+        printf("There are no accounts here");
+        menu();
+      }
   }else if(choice == 3){
-    transferOperation("withdraw");
+    if(howManyAccountsExist() > 0)
+      moneyOperation("withdraw");
+    else{
+      printf("\e[2J\e[H"); // clear terminal
+      printf("There are no accounts here");
+      menu();
+    }
   }else if(choice == 4){
-    transferOperation("deposit");
+    if(howManyAccountsExist() > 0)
+      moneyOperation("deposit");
+    else{
+      printf("\e[2J\e[H"); // clear terminal
+      printf("There are no accounts here");
+      menu();
+    }
   }else if(choice == 5){
+
+    if(howManyAccountsExist() < 2){
+      printf("\e[2J\e[H"); // clear terminal
+      printf("Operation not possible, too few accounts.");
+      menu();
+    }
+
+    int transferFrom, transferTo;
+    printf("\e[2J\e[H"); // clear terminal
+    shortListAllAccounts();
+    printf("\n\nTransfer from: ");
+    if(!scanf("%d", &transferFrom)){
+      while ((getchar()) != '\n');
+      printf("\nINVALID INPUT\n");
+      menu();
+    }
+    clearBuffer();
+
+    printf("\e[2J\e[H"); // clear terminal
+    shortListAllAccounts();
+    printf("\n\nTransfer from: %d\n", transferFrom);
+    printf("Transfer to:   ");
+    if(!scanf("%d", &transferTo)){
+      while ((getchar()) != '\n');
+      printf("\nINVALID INPUT\n");
+      menu();
+    }
+    clearBuffer();
+
+    if(isAccount(transferFrom) && isAccount(transferTo)){
+      transferOperation(transferFrom, transferTo);
+    }else{
+      printf("\e[2J\e[H"); // clear terminal
+      printf("Operation not possible, such accounts doesn't exist!");
+      menu();
+    }
+
+  }else if(choice == 6){
+    clearDatabase();
+
+  }else if(choice == 7){
     exit(1);
   }else{
     printf("\nINVALID INPUT\n");
@@ -125,7 +186,7 @@ void newAccount(){
     }
     fwrite (&accStruct, sizeof(struct account), 1, externFile);
     fclose(externFile);
-    printf("Account was created succesfully!\n");
+    printf("Account was created succesfully!");
   }else if(accept == 'n'){
     printf("Account was not created.\n");
   }
@@ -213,7 +274,6 @@ int getPesel(char * reference, size_t size){
 }
 
 
-
 int howManyAccountsExist(void){
   account accounts;
   int cnt_accounts = 0;
@@ -280,7 +340,7 @@ void shortListAllAccounts(){
 }
 
 
-void transferOperation(char *operation){
+void moneyOperation(char *operation){
 
   account tempAccount;
   int operationOn;
@@ -315,6 +375,7 @@ void transferOperation(char *operation){
   if(!scanf("%f", &howMuchMoney)){
     while ((getchar()) != '\n');
     printf("\nINVALID INPUT\n");
+    printf("\n\n--> %s was not done!", operation);
     menu();
   }
   clearBuffer();
@@ -364,4 +425,36 @@ void safeInput(char * reference, size_t size)
   }
   reference[strcspn(reference, "\n")] = '\0';
   fflush(stdin);
+}
+
+
+void clearDatabase(void){
+  fclose(fopen("accounts.dat", "w"));
+  printf("\e[2J\e[H"); // clear terminal
+  printf("Database is clear");
+  menu();
+}
+
+
+void transferOperation(int transferFrom, int transferTo){
+  printf("\nOK\n");
+  menu();
+}
+
+bool isAccount(int accountNumber){
+  account tempAccount;
+  FILE *externFile;
+  externFile = fopen("accounts.dat", "r");
+  if(externFile == NULL){
+    return false;
+  }
+  else{
+    while(fread(&tempAccount, sizeof(struct account), 1, externFile)){
+      if(tempAccount.accountNumber == accountNumber){
+        fclose (externFile);
+        return true;
+      }
+    }
+    return false;
+  }
 }
