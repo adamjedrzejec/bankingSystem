@@ -28,7 +28,7 @@ int accountNumberCreator(void);
 void listAllAccounts(void);
 int getAddress(char *, size_t);
 int getPesel(char *, size_t);
-
+void withdraw(void);
 
 int main (int argc, char **argv) {
   menu();
@@ -42,7 +42,7 @@ void menu(){
   printf("\n\n===BANKING SYSTEM==============================================\n");
   printf("===MENU========================================================\n\n");
   printf("Choose one of options:\n");
-  printf("1.Create an account\n2.List all accounts\n3.Exit");
+  printf("1.Create an account\n2.List all accounts\n3.Withdraw\n4.Exit");
   printf("\n===============================================================\n");
   fflush(stdin);
   if(!scanf("%d", &choice)){
@@ -59,6 +59,8 @@ void menu(){
   }else if(choice == 2){
     listAllAccounts();
   }else if(choice == 3){
+    withdraw();
+  }else if(choice == 4){
     exit(1);
   }else{
     printf("\nINVALID INPUT\n");
@@ -201,7 +203,7 @@ int getPesel(char * reference, size_t size){
 
 
 
-int accountNumberCreator(){
+int accountNumberCreator(void){
   account accounts;
   int cnt_accounts = 0;
   FILE *externFile;
@@ -235,12 +237,37 @@ void listAllAccounts(){
     printf("First name:      %s\n", tempAccount.firstName);
     printf("Last name:       %s\n", tempAccount.lastName);
     printf("PESEL:           %s\n", tempAccount.pesel);
-    printf("Address:         %s\n\n\n", tempAccount.address);
+    printf("Address:         %s\n", tempAccount.address);
+    printf("Balance:         %.2f\n\n\n", tempAccount.balance);
   }
   fclose(externFile);
   printf("==================================================================\n\n");
   menu();
 }
+
+
+void withdraw(void){
+
+  listAllAccounts();
+
+  account tempAccount;
+  int withdrawTo = 2;
+  FILE *externFile;
+
+  externFile = fopen("accounts.dat", "a+");
+  if(externFile == NULL)
+    printf("\nProblem with creating/opening file.\n");
+  else{
+    while(fread(&tempAccount, sizeof(struct account), 1, externFile)){
+      if(tempAccount.accountNumber == withdrawTo){
+        tempAccount.balance += 100;
+        fwrite(&tempAccount.balance, sizeof(tempAccount.balance), 1, externFile);
+      }
+    }
+    fclose (externFile);
+  }
+}
+
 
 void clearBuffer(void)
 {
