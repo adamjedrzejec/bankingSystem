@@ -532,6 +532,9 @@ void searchFor(void){
   account tempAccount;
   FILE *externFile;
   char lookFor[MAX_VALUE_INPUT + 1];
+  char *endptr;
+  int intLookFor;
+  float floatLookFor;
   bool done = false;
   if((externFile = fopen("accounts.dat", "r")) == NULL){
     printf("\e[2J\e[H"); // clear terminal
@@ -545,7 +548,8 @@ void searchFor(void){
 
     if(strlen(lookFor) != 0){
       while(fread(&tempAccount, sizeof(struct account), 1, externFile)){
-        if(strstr(tempAccount.firstName, lookFor) != NULL || strstr(tempAccount.lastName, lookFor) != NULL || strstr(tempAccount.address, lookFor) != NULL || strstr(tempAccount.pesel, lookFor) != NULL){
+        if(strstr(tempAccount.firstName, lookFor) != NULL || strstr(tempAccount.lastName, lookFor) != NULL || strstr(tempAccount.address, lookFor) != NULL || strstr(tempAccount.pesel, lookFor) != NULL ||
+        (tempAccount.balance == strtof(lookFor, &endptr) && *endptr == '\0') || (tempAccount.accountNumber == strtol(lookFor, &endptr, 10) && *endptr == '\0')) {
           printf("Account number:  %d\n", tempAccount.accountNumber);
           printf("First name:      %s\n", tempAccount.firstName);
           printf("Last name:       %s\n", tempAccount.lastName);
