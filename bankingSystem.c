@@ -7,7 +7,7 @@
 #define MAX_FIRST_LAST_NAME_LENGTH 30
 #define MAX_ADDRESS_LENGTH 50
 #define PESEL_LENGTH 11
-
+#define MAX_VALUE_INPUT 11
 
 typedef struct account{
   int accountNumber;
@@ -34,7 +34,7 @@ void shortListAllAccounts(void);
 void clearDatabase(void);
 void transferOperation(int, int);
 bool isAccount(int);
-
+float getFloat(char *); // char * is a message
 
 int main (int argc, char **argv) {
   printf("\e[2J\e[H"); // clear terminal
@@ -45,13 +45,13 @@ int main (int argc, char **argv) {
 
 void menu(){
   int choice;
-  //printf("\e[2J\e[H"); // clear terminal
   printf("\n\n===BANKING SYSTEM==============================================\n");
   printf("===MENU========================================================\n\n");
   printf("Choose one of options:\n");
   printf("1.Create an account\n2.List all accounts\n3.Withdraw\n4.Deposit\n5.Transfer\n6.Clear database\n7.Exit");
   printf("\n===============================================================\n");
   fflush(stdin);
+
   if(!scanf("%d", &choice)){
     while ((getchar()) != '\n');
     printf("\nINVALID INPUT\n");
@@ -370,15 +370,9 @@ void moneyOperation(char *operation){
   clearBuffer();
 
 
-  printf("\nEnter how much money to %s: ", operation);
+  //printf("\nEnter how much money to %s: ", operation);
 
-  if(!scanf("%f", &howMuchMoney)){
-    while ((getchar()) != '\n');
-    printf("\nINVALID INPUT\n");
-    printf("\n\n--> %s was not done!", operation);
-    menu();
-  }
-  clearBuffer();
+  howMuchMoney = getFloat("Enter how much money: ");
 
 
   externFile = fopen("accounts.dat", "r+");
@@ -408,6 +402,29 @@ void moneyOperation(char *operation){
 }
 
 
+float getFloat(char * message){
+
+  char input[MAX_VALUE_INPUT];
+  char *endptr;
+  float output;
+  bool done = false;
+
+  do{
+    printf("%s", message);
+    safeInput(input, sizeof(input));
+    output = strtof(input, &endptr);
+
+    if(*endptr != '\0'){
+      printf("--> Invalid input!\n\n");
+    }else{
+      done = true;
+    }
+  }while(!done);
+
+  return output;
+}
+
+
 void clearBuffer(void)
 {
   int c;
@@ -434,18 +451,6 @@ void clearDatabase(void){
   printf("Database is clear");
   menu();
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 void transferOperation(int transferFrom, int transferTo){
@@ -506,16 +511,6 @@ void transferOperation(int transferFrom, int transferTo){
 
   menu();
 }
-
-
-
-
-
-
-
-
-
-
 
 
 bool isAccount(int accountNumber){
