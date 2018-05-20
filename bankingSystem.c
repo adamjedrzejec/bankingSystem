@@ -35,6 +35,9 @@ void clearDatabase(void);
 void transferOperation(int, int);
 bool isAccount(int);
 float getFloat(char *); // char * is a message
+void searchFor(void);
+
+
 
 int main (int argc, char **argv) {
   printf("\e[2J\e[H"); // clear terminal
@@ -48,7 +51,7 @@ void menu(){
   printf("\n\n===BANKING SYSTEM==============================================\n");
   printf("===MENU========================================================\n\n");
   printf("Choose one of options:\n");
-  printf("1.Create an account\n2.List all accounts\n3.Withdraw\n4.Deposit\n5.Transfer\n6.Clear database\n7.Exit");
+  printf("1.Create an account\n2.List all accounts\n3.Withdraw\n4.Deposit\n5.Transfer\n6.Search for\n7.Clear database\n8.Exit");
   printf("\n===============================================================\n");
   fflush(stdin);
 
@@ -126,9 +129,12 @@ void menu(){
     }
 
   }else if(choice == 6){
-    clearDatabase();
+    searchFor();
 
   }else if(choice == 7){
+    clearDatabase();
+
+  }else if(choice == 8){
     exit(1);
   }else{
     printf("\nINVALID INPUT\n");
@@ -370,8 +376,6 @@ void moneyOperation(char *operation){
   clearBuffer();
 
 
-  //printf("\nEnter how much money to %s: ", operation);
-
   howMuchMoney = getFloat("Enter how much money: ");
 
 
@@ -461,15 +465,7 @@ void transferOperation(int transferFrom, int transferTo){
   float howMuchMoney;
 
 
-  printf("\nEnter how much money to transfer: ");
-
-  if(!scanf("%f", &howMuchMoney)){
-    while ((getchar()) != '\n');
-    printf("\nINVALID INPUT\n");
-    printf("\n\n--> transfer was not done!");
-    menu();
-  }
-  clearBuffer();
+  howMuchMoney = getFloat("Enter how much money: ");
 
 
   externFile = fopen("accounts.dat", "r+");
@@ -529,4 +525,42 @@ bool isAccount(int accountNumber){
     }
     return false;
   }
+}
+
+
+void searchFor(void){
+  account tempAccount;
+  FILE *externFile;
+  char lookFor[MAX_VALUE_INPUT + 1];
+  bool done = false;
+  if((externFile = fopen("accounts.dat", "r")) == NULL){
+    printf("\e[2J\e[H"); // clear terminal
+    printf("\nProblem with opening the file.\n");
+    menu();
+  }
+
+  do{
+    printf("Look for: ");
+    safeInput(lookFor, sizeof(lookFor));
+
+    if(strlen(lookFor) != 0){
+      while(fread(&tempAccount, sizeof(struct account), 1, externFile)){
+        if(strstr(tempAccount.firstName, lookFor) != NULL || strstr(tempAccount.lastName, lookFor) != NULL || strstr(tempAccount.address, lookFor) != NULL || strstr(tempAccount.pesel, lookFor) != NULL){
+          printf("Account number:  %d\n", tempAccount.accountNumber);
+          printf("First name:      %s\n", tempAccount.firstName);
+          printf("Last name:       %s\n", tempAccount.lastName);
+          printf("PESEL:           %s\n", tempAccount.pesel);
+          printf("Address:         %s\n", tempAccount.address);
+          printf("Balance:         %.2f\n\n\n", tempAccount.balance);
+        }
+      }
+      done = true;
+    }
+    else{
+      printf("Wrong input, try again\n");
+    }
+  }while(!done);
+
+  fclose(externFile);
+  menu();
 }
