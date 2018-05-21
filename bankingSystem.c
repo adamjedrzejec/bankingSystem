@@ -3,6 +3,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdbool.h>
+#include <math.h>
 
 #define MAX_FIRST_LAST_NAME_LENGTH 30
 #define MAX_ADDRESS_LENGTH 50
@@ -375,9 +376,12 @@ void moneyOperation(char *operation){
   }
   clearBuffer();
 
-
-  howMuchMoney = getFloat("Enter how much money: ");
-
+  do{
+    howMuchMoney = getFloat("Enter how much money: ");
+    if(!(fabsf((100.0 * howMuchMoney - round(100 * howMuchMoney))/100.0) < 0.000001)){
+      printf("\nINVALID VALUE!\n");
+    }
+  }while(!(fabsf((100.0 * howMuchMoney - round(100 * howMuchMoney))/100.0) < 0.000001));
 
   externFile = fopen("accounts.dat", "r+");
   if(externFile == NULL)
@@ -464,9 +468,12 @@ void transferOperation(int transferFrom, int transferTo){
   bool done;
   float howMuchMoney;
 
-
-  howMuchMoney = getFloat("Enter how much money: ");
-
+  do{
+    howMuchMoney = getFloat("Enter how much money: ");
+    if(!(fabsf((100.0 * howMuchMoney - round(100 * howMuchMoney))/100.0) < 0.000001)){
+      printf("\nINVALID VALUE!\n");
+    }
+  }while(!(fabsf((100.0 * howMuchMoney - round(100 * howMuchMoney))/100.0) < 0.000001));
 
   externFile = fopen("accounts.dat", "r+");
   if(externFile == NULL)
@@ -536,6 +543,7 @@ void searchFor(void){
   int intLookFor;
   float floatLookFor;
   bool done = false;
+  int matchesFound = 0;
   if((externFile = fopen("accounts.dat", "r")) == NULL){
     printf("\e[2J\e[H"); // clear terminal
     printf("\nProblem with opening the file.\n");
@@ -545,6 +553,7 @@ void searchFor(void){
   do{
     printf("Look for: ");
     safeInput(lookFor, sizeof(lookFor));
+    printf("\n");
 
     if(strlen(lookFor) != 0){
       while(fread(&tempAccount, sizeof(struct account), 1, externFile)){
@@ -556,6 +565,7 @@ void searchFor(void){
           printf("PESEL:           %s\n", tempAccount.pesel);
           printf("Address:         %s\n", tempAccount.address);
           printf("Balance:         %.2f\n\n\n", tempAccount.balance);
+          matchesFound++;
         }
       }
       done = true;
@@ -566,5 +576,16 @@ void searchFor(void){
   }while(!done);
 
   fclose(externFile);
+
+
+  if (matchesFound){
+      printf("Found %d matches.", matchesFound);
+  }
+  else{
+    printf("\e[2J\e[H"); // clear terminal
+    printf("No matches found...");
+  }
+
+
   menu();
 }
