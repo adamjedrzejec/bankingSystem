@@ -8,7 +8,8 @@
 #define MAX_FIRST_LAST_NAME_LENGTH 30
 #define MAX_ADDRESS_LENGTH 50
 #define PESEL_LENGTH 11
-#define MAX_VALUE_INPUT 11
+#define MAX_VALUE_INPUT 13
+#define MAX_SEARCH_FOR_INPUT 30
 
 typedef struct account{
   int accountNumber;
@@ -240,7 +241,7 @@ int getAddress(char * reference, size_t size){
 
   for(int i = 0; i < strlen(user); i++)
   {
-    if(!isalnum(user[i]))
+    if(!(isalnum(user[i]) || user[i] == ' '))
       onlyAlphaNumerical = 0;
   }
 
@@ -378,10 +379,17 @@ void moneyOperation(char *operation){
 
   do{
     howMuchMoney = getFloat("Enter how much money: ");
-    if(!(fabsf((100.0 * howMuchMoney - round(100 * howMuchMoney))/100.0) < 0.000001)){
+    if(howMuchMoney > 1000000.0){
+      printf("\e[2J\e[H"); // clear terminal
+      printf("===BANK SECURITY SYSTEM===\n");
+      printf("=====OPERATION DENIED=====\n");
+      printf("======TOO BIG VALUE=======\n");
+      menu();
+    }
+    if(!(fabsf((100.0 * howMuchMoney - round(100 * howMuchMoney))/100.0) < 0.0001)){
       printf("\nINVALID VALUE!\n");
     }
-  }while(!(fabsf((100.0 * howMuchMoney - round(100 * howMuchMoney))/100.0) < 0.000001));
+  }while(!(fabsf((100.0 * howMuchMoney - round(100 * howMuchMoney))/100.0) < 0.0001));
 
   externFile = fopen("accounts.dat", "r+");
   if(externFile == NULL)
@@ -389,6 +397,11 @@ void moneyOperation(char *operation){
   else{
     while(!done && fread(&tempAccount, sizeof(struct account), 1, externFile)){
       if(tempAccount.accountNumber == operationOn){
+        if(tempAccount.balance + whichOperation * howMuchMoney < 0){
+          printf("\e[2J\e[H"); // clear terminal
+          printf("\nNot enough money to do an operation!\n");
+          menu();
+        }
         tempAccount.balance += whichOperation * howMuchMoney;
         fseek(externFile, -sizeof(struct account), 1);
         fwrite(&tempAccount, sizeof(struct account), 1, externFile);
@@ -470,10 +483,17 @@ void transferOperation(int transferFrom, int transferTo){
 
   do{
     howMuchMoney = getFloat("Enter how much money: ");
-    if(!(fabsf((100.0 * howMuchMoney - round(100 * howMuchMoney))/100.0) < 0.000001)){
+    if(howMuchMoney > 1000000.0){
+      printf("\e[2J\e[H"); // clear terminal
+      printf("===BANK SECURITY SYSTEM===\n");
+      printf("=====OPERATION DENIED=====\n");
+      printf("======TOO BIG VALUE=======\n");
+      menu();
+    }
+    if(!(fabsf((100.0 * howMuchMoney - round(100 * howMuchMoney))/100.0) < 0.0001)){
       printf("\nINVALID VALUE!\n");
     }
-  }while(!(fabsf((100.0 * howMuchMoney - round(100 * howMuchMoney))/100.0) < 0.000001));
+  }while(!(fabsf((100.0 * howMuchMoney - round(100 * howMuchMoney))/100.0) < 0.0001));
 
   externFile = fopen("accounts.dat", "r+");
   if(externFile == NULL)
@@ -538,7 +558,7 @@ bool isAccount(int accountNumber){
 void searchFor(void){
   account tempAccount;
   FILE *externFile;
-  char lookFor[MAX_VALUE_INPUT + 1];
+  char lookFor[MAX_SEARCH_FOR_INPUT + 1];
   char *endptr;
   int intLookFor;
   float floatLookFor;
