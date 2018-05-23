@@ -6,9 +6,9 @@ bankingSystem: bankingSystem.o operationsOnDatabase.o
 .c.o:
 	gcc -g -Wall -pedantic -std=c99 -c -D_REENTRANT $<
 
-operationsOnDataBase.o: operationsOnDataBase.c operationsOnDatabase.h
+operationsOnDatabase.o: operationsOnDatabase.c operationsOnDatabase.h
 
 bankingSystem.o: bankingSystem.c operationsOnDatabase.h
 
 clean:
-	-rm operationsOnDataBase.o bankingSystem.o bankingSystem
+	-rm operationsOnDatabase.o bankingSystem.o bankingSystem

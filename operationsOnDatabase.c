@@ -23,7 +23,7 @@ void menu(){
   }
   clearBuffer();
 
-  printf("\e[2J\e[H"); // clear terminal
+  printf("\033[2J\033[H"); // clear terminal
 
   if(choice == 1){
     newAccount();
@@ -31,7 +31,7 @@ void menu(){
     if(howManyAccountsExist() > 0)
       listAllAccounts();
       else{
-        printf("\e[2J\e[H"); // clear terminal
+        printf("\033[2J\033[H"); // clear terminal
         printf("There are no accounts here");
         menu();
       }
@@ -39,7 +39,7 @@ void menu(){
     if(howManyAccountsExist() > 0)
       moneyOperation("withdraw");
     else{
-      printf("\e[2J\e[H"); // clear terminal
+      printf("\033[2J\033[H"); // clear terminal
       printf("There are no accounts here");
       menu();
     }
@@ -47,20 +47,20 @@ void menu(){
     if(howManyAccountsExist() > 0)
       moneyOperation("deposit");
     else{
-      printf("\e[2J\e[H"); // clear terminal
+      printf("\033[2J\033[H"); // clear terminal
       printf("There are no accounts here");
       menu();
     }
   }else if(choice == 5){
 
     if(howManyAccountsExist() < 2){
-      printf("\e[2J\e[H"); // clear terminal
+      printf("\033[2J\033[H"); // clear terminal
       printf("Operation not possible, too few accounts.");
       menu();
     }
 
     int transferFrom, transferTo;
-    printf("\e[2J\e[H"); // clear terminal
+    printf("\033[2J\033[H"); // clear terminal
     shortListAllAccounts();
     printf("\n\nTransfer from: ");
     if(!scanf("%d", &transferFrom)){
@@ -70,7 +70,7 @@ void menu(){
     }
     clearBuffer();
 
-    printf("\e[2J\e[H"); // clear terminal
+    printf("\033[2J\033[H"); // clear terminal
     shortListAllAccounts();
     printf("\n\nTransfer from: %d\n", transferFrom);
     printf("Transfer to:   ");
@@ -84,7 +84,7 @@ void menu(){
     if(isAccount(transferFrom) && isAccount(transferTo)){
       transferOperation(transferFrom, transferTo);
     }else{
-      printf("\e[2J\e[H"); // clear terminal
+      printf("\033[2J\033[H"); // clear terminal
       printf("Operation not possible, such accounts doesn't exist!");
       menu();
     }
@@ -142,7 +142,7 @@ void newAccount(){
   }while(!(accept == 'y' || accept == 'n'));
 
 
-  printf("\e[2J\e[H"); // clear terminal
+  printf("\033[2J\033[H"); // clear terminal
 
 
   if(accept == 'y'){
@@ -290,7 +290,7 @@ void shortListAllAccounts(){
   FILE *externFile;
   externFile = fopen("accounts.dat", "r");
   if(externFile == NULL){
-    printf("\e[2J\e[H"); // clear terminal
+    printf("\033[2J\033[H"); // clear terminal
     printf("\nThere are no accounts!");
     menu();
   }
@@ -321,7 +321,7 @@ void moneyOperation(char *operation){
   else if(strcmp(operation, "deposit") == 0)
     whichOperation = 1;
   else{
-    printf("\e[2J\e[H"); // clear terminal
+    printf("\033[2J\033[H"); // clear terminal
     printf("Invalid operation!\n");
     menu();
   }
@@ -339,7 +339,7 @@ void moneyOperation(char *operation){
   do{
     howMuchMoney = getFloat("Enter how much money: ");
     if(howMuchMoney > 1000000.0){
-      printf("\e[2J\e[H"); // clear terminal
+      printf("\033[2J\033[H"); // clear terminal
       printf("===BANK SECURITY SYSTEM===\n");
       printf("=====OPERATION DENIED=====\n");
       printf("======TOO BIG VALUE=======\n");
@@ -357,7 +357,7 @@ void moneyOperation(char *operation){
     while(!done && fread(&tempAccount, sizeof(struct account), 1, externFile)){
       if(tempAccount.accountNumber == operationOn){
         if(tempAccount.balance + whichOperation * howMuchMoney < 0){
-          printf("\e[2J\e[H"); // clear terminal
+          printf("\033[2J\033[H"); // clear terminal
           printf("\nNot enough money to do an operation!\n");
           menu();
         }
@@ -368,7 +368,7 @@ void moneyOperation(char *operation){
       }
     }
     fclose (externFile);
-    printf("\e[2J\e[H"); // clear terminal
+    printf("\033[2J\033[H"); // clear terminal
 
     shortListAllAccounts();
 
@@ -427,7 +427,7 @@ void safeInput(char * reference, size_t size)
 
 void clearDatabase(void){
   fclose(fopen("accounts.dat", "w"));
-  printf("\e[2J\e[H"); // clear terminal
+  printf("\033[2J\033[H"); // clear terminal
   printf("Database is clear");
   menu();
 }
@@ -443,7 +443,7 @@ void transferOperation(int transferFrom, int transferTo){
   do{
     howMuchMoney = getFloat("Enter how much money: ");
     if(howMuchMoney > 1000000.0){
-      printf("\e[2J\e[H"); // clear terminal
+      printf("\033[2J\033[H"); // clear terminal
       printf("===BANK SECURITY SYSTEM===\n");
       printf("=====OPERATION DENIED=====\n");
       printf("======TOO BIG VALUE=======\n");
@@ -482,7 +482,7 @@ void transferOperation(int transferFrom, int transferTo){
     done = true;
   }
 
-  printf("\e[2J\e[H"); // clear terminal
+  printf("\033[2J\033[H"); // clear terminal
 
   shortListAllAccounts();
 
@@ -519,12 +519,10 @@ void searchFor(void){
   FILE *externFile;
   char lookFor[MAX_SEARCH_FOR_INPUT + 1];
   char *endptr;
-  int intLookFor;
-  float floatLookFor;
   bool done = false;
   int matchesFound = 0;
   if((externFile = fopen("accounts.dat", "r")) == NULL){
-    printf("\e[2J\e[H"); // clear terminal
+    printf("\033[2J\033[H"); // clear terminal
     printf("\nProblem with opening the file.\n");
     menu();
   }
@@ -561,7 +559,7 @@ void searchFor(void){
       printf("Found %d matches.", matchesFound);
   }
   else{
-    printf("\e[2J\e[H"); // clear terminal
+    printf("\033[2J\033[H"); // clear terminal
     printf("No matches found...");
   }
 

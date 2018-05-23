@@ -8,7 +8,7 @@
 
 
 int main (int argc, char **argv) {
-  printf("\e[2J\e[H"); // clear terminal
+  printf("\033[2J\033[H"); // clear terminal
   menu();
   return 0;
 }
