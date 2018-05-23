@@ -106,7 +106,7 @@ void menu(){
 void newAccount(){
 
   FILE *externFile;
-  account accStruct;
+  account accStruct = {0};
   char accept;
 
   printf("\n\n===============================================================\n");
@@ -315,7 +315,9 @@ void moneyOperation(char *operation){
   bool done = false;
   float howMuchMoney;
   int whichOperation;
-
+	char accept;
+	
+	
   if(strcmp(operation, "withdraw") == 0)
     whichOperation = -1;
   else if(strcmp(operation, "deposit") == 0)
@@ -336,7 +338,11 @@ void moneyOperation(char *operation){
   }
   clearBuffer();
 
-  do{
+	externFile = fopen("accounts.dat", "r+");
+	  if(externFile == NULL)
+		printf("\nProblem with opening the file.\n");
+	  else{
+
     howMuchMoney = getFloat("Enter how much money: ");
     if(howMuchMoney > 1000000.0){
       printf("\033[2J\033[H"); // clear terminal
@@ -345,15 +351,16 @@ void moneyOperation(char *operation){
       printf("======TOO BIG VALUE=======\n");
       menu();
     }
-    if(!(fabsf((100.0 * howMuchMoney - round(100 * howMuchMoney))/100.0) < 0.0001)){
-      printf("\nINVALID VALUE!\n");
+    if(howMuchMoney < 0){
+      printf("\033[2J\033[H"); // clear terminal
+      printf("===BANK SECURITY SYSTEM===\n");
+      printf("=====OPERATION DENIED=====\n");
+      printf("======NEGATIVE VALUE=======\n");
+      menu();
     }
-  }while(!(fabsf((100.0 * howMuchMoney - round(100 * howMuchMoney))/100.0) < 0.0001));
 
-  externFile = fopen("accounts.dat", "r+");
-  if(externFile == NULL)
-    printf("\nProblem with opening the file.\n");
-  else{
+		printf("\nDo you want to make a %s?\n", operation);
+  
     while(!done && fread(&tempAccount, sizeof(struct account), 1, externFile)){
       if(tempAccount.accountNumber == operationOn){
         if(tempAccount.balance + whichOperation * howMuchMoney < 0){
@@ -361,10 +368,21 @@ void moneyOperation(char *operation){
           printf("\nNot enough money to do an operation!\n");
           menu();
         }
-        tempAccount.balance += whichOperation * howMuchMoney;
-        fseek(externFile, -sizeof(struct account), 1);
-        fwrite(&tempAccount, sizeof(struct account), 1, externFile);
-        done = true;
+        printf("Name:   %s %s\n", tempAccount.firstName, tempAccount.lastName);
+        printf("Amount: %.2f\n", howMuchMoney);
+        
+        do{
+			printf("\nInput y to accept, n to refuse\n");
+			accept = getchar();
+			clearBuffer();
+		}while(!(accept == 'y' || accept == 'n'));
+        
+        if(accept == 'y'){
+			tempAccount.balance += whichOperation * howMuchMoney;
+			fseek(externFile, -sizeof(struct account), 1);
+			fwrite(&tempAccount, sizeof(struct account), 1, externFile);
+			done = true;
+		}
       }
     }
     fclose (externFile);
@@ -375,7 +393,7 @@ void moneyOperation(char *operation){
     if(done)
       printf("\n\n--> %s done properly.", operation);
     else
-      printf("\n\n--> %s was not done!", operation);
+      printf("\n\n--> %s was NOT done!", operation);
 
     menu();
   }
@@ -439,8 +457,8 @@ void transferOperation(int transferFrom, int transferTo){
   FILE *externFile;
   bool done;
   float howMuchMoney;
-
-  do{
+	char accept;
+	
     howMuchMoney = getFloat("Enter how much money: ");
     if(howMuchMoney > 1000000.0){
       printf("\033[2J\033[H"); // clear terminal
@@ -449,37 +467,77 @@ void transferOperation(int transferFrom, int transferTo){
       printf("======TOO BIG VALUE=======\n");
       menu();
     }
-    if(!(fabsf((100.0 * howMuchMoney - round(100 * howMuchMoney))/100.0) < 0.0001)){
-      printf("\nINVALID VALUE!\n");
+    if(howMuchMoney < 0){
+      printf("\033[2J\033[H"); // clear terminal
+      printf("===BANK SECURITY SYSTEM===\n");
+      printf("=====OPERATION DENIED=====\n");
+      printf("======NEGATIVE VALUE=======\n");
+      menu();
     }
-  }while(!(fabsf((100.0 * howMuchMoney - round(100 * howMuchMoney))/100.0) < 0.0001));
 
   externFile = fopen("accounts.dat", "r+");
   if(externFile == NULL)
     printf("\nProblem with opening the file.\n");
   else{
-    done = false;
-    while(fread(&tempAccount, sizeof(struct account), 1, externFile)){
-      if(tempAccount.accountNumber == transferFrom){
-        tempAccount.balance -= howMuchMoney;
-        fseek(externFile, -sizeof(struct account), 1);
-        fwrite(&tempAccount, sizeof(struct account), 1, externFile);
-      }
-    }
-
-    fseek(externFile, (-howManyAccountsExist())*sizeof(struct account), 1);
-
-
-    done = false;
-    while(fread(&tempAccount, sizeof(struct account), 1, externFile)){
+	
+		printf("\nDo you want to do a transfer?\n");
+		
+	  while(fread(&tempAccount, sizeof(struct account), 1, externFile)){
+		  if(tempAccount.accountNumber == transferFrom){
+			  if(tempAccount.balance - howMuchMoney < 0){
+				  printf("\033[2J\033[H"); // clear terminal
+				  printf("===BANK SECURITY SYSTEM===\n");
+				  printf("=====OPERATION DENIED=====\n");
+				  printf("=====NOT ENOUGH MONEY=====\n");
+				  menu();
+			  }
+			printf("From:   %s %s\n", tempAccount.firstName, tempAccount.lastName);
+		  }
+		}
+	  
+	  fseek(externFile, (-howManyAccountsExist())*sizeof(struct account), 1);
+	  
+	while(fread(&tempAccount, sizeof(struct account), 1, externFile)){
       if(tempAccount.accountNumber == transferTo){
-        tempAccount.balance += howMuchMoney;
-        fseek(externFile, -sizeof(struct account), 1);
-        fwrite(&tempAccount, sizeof(struct account), 1, externFile);
+        printf("To:     %s %s\n", tempAccount.firstName, tempAccount.lastName);
       }
     }
-    fclose (externFile);
-    done = true;
+	  
+	  printf("Amount: %.2f\n", howMuchMoney);
+	  
+	    do{
+			printf("\nInput y to accept, n to refuse\n");
+			accept = getchar();
+			clearBuffer();
+		}while(!(accept == 'y' || accept == 'n'));
+	  
+	if(accept == 'y'){
+	  
+		  fseek(externFile, (-howManyAccountsExist())*sizeof(struct account), 1);
+		  
+		done = false;
+		while(fread(&tempAccount, sizeof(struct account), 1, externFile)){
+		  if(tempAccount.accountNumber == transferFrom){
+			tempAccount.balance -= howMuchMoney;
+			fseek(externFile, -sizeof(struct account), 1);
+			fwrite(&tempAccount, sizeof(struct account), 1, externFile);
+		  }
+		}
+
+		fseek(externFile, (-howManyAccountsExist())*sizeof(struct account), 1);
+
+
+		done = false;
+		while(fread(&tempAccount, sizeof(struct account), 1, externFile)){
+		  if(tempAccount.accountNumber == transferTo){
+			tempAccount.balance += howMuchMoney;
+			fseek(externFile, -sizeof(struct account), 1);
+			fwrite(&tempAccount, sizeof(struct account), 1, externFile);
+		  }
+		}
+		fclose (externFile);
+		done = true;
+	}
   }
 
   printf("\033[2J\033[H"); // clear terminal
@@ -489,7 +547,7 @@ void transferOperation(int transferFrom, int transferTo){
   if(done)
     printf("\n\n--> transfer done properly.");
   else
-    printf("\n\n--> transfer was not done!");
+    printf("\n\n--> transfer was NOT done!");
 
   menu();
 }
